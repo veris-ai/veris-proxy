@@ -954,3 +954,21 @@ page before printing the array. `--limit` is the page size, at most 1000.
 Stop writers while collecting pages: this is not an atomic snapshot. A changed
 total, stalled page, or failed request fails the command without emitting a
 partial JSON array. Filter the complete array locally to count rows from a run.
+
+### Long-running captures
+
+`veris baseline promote --keep-source` and `veris snapshot create` use durable
+capture operations when the API supports them. The CLI prints the request ID
+before submission, then the operation ID and phase. To resume after a lost
+connection, repeat the same command and options with `--request-id ID`.
+Terminal `failed` or `interrupted` outcomes stop polling and retain the source.
+An unconfirmed outcome (including a missing/invalid saved-image result) exits 4
+and retains the source. The default client wait is 1800 seconds; it does not
+extend the server's independently configured capture budget.
+
+Only an explicit missing-route response permits the legacy synchronous capture
+and baseline/snapshot polling fallback. Deploy the API's capture-operations
+migration and implementation first to get durable tracking. Worker loss is
+reported as interrupted; it is not automatically replayed, because publication
+may already have completed. Inspect the baseline or snapshots before starting
+a new request. Verify a separate fresh boot before deleting an imported source.
